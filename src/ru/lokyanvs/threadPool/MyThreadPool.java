@@ -6,7 +6,7 @@ import java.util.Queue;
 public class MyThreadPool {
     private ThreadPoolTask[] pool;
     private Queue<Runnable> threadQueue;
-    private final Thread taskExecutor;
+    private Thread taskExecutor;
     private Queue<Integer> availablePoolElement;
     private boolean shutDown;
 
@@ -23,8 +23,8 @@ public class MyThreadPool {
         taskExecutor.start();
     }
 
-    public boolean addTask(Runnable task) {
-        return threadQueue.offer(task);
+    public void addTask(Runnable task) {
+        threadQueue.offer(task);
     }
 
     void releaseTask(int taskNumber) {
@@ -44,7 +44,6 @@ public class MyThreadPool {
                 Thread.yield();
             }
             for (ThreadPoolTask task : pool) task.shutDown();
-
         }
     }
 }
