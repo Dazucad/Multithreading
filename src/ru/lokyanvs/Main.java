@@ -5,12 +5,12 @@ import ru.lokyanvs.threadPool.MyThreadPool;
 public class Main {
 
     public static void main(String[] args) {
-        MyThreadPool mtp = new MyThreadPool(4);
-        for (int i = 0; i < 16; i++)
+        MyThreadPool mtp = new MyThreadPool(2);
+        for (int i = 0; i < 40; i++)
             mtp.addTask(() -> {
                 System.out.println("Начало задачи " + Thread.currentThread().getName());
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

@@ -2,49 +2,46 @@ package ru.lokyanvs.threadPool;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MyThreadPool {
     private ThreadPoolTask[] pool;
     private Queue<Runnable> threadQueue;
-    private Thread taskExecutor;
-    private Queue<Integer> availablePoolElement;
     private boolean shutDown;
+    private ReentrantLock lock;
 
     public MyThreadPool(int count) {
+        lock = new ReentrantLock();
         pool = new ThreadPoolTask[count];
+        threadQueue = new LinkedList<>();
         for (int i = 0; i < count; i++) {
-            pool[i] = new ThreadPoolTask(i, this);
+            pool[i] = new ThreadPoolTask(this);
             pool[i].start();
         }
-        threadQueue = new LinkedList<>();
-        availablePoolElement = new LinkedList<>();
-        taskExecutor = new TaskExecutor();
-        for (int i = 0; i < count; i++) availablePoolElement.offer(i);
-        taskExecutor.start();
+    }
+
+    Runnable getTask() {
+        Runnable task;
+        lock.lock();
+        task = threadQueue.poll();
+        lock.unlock();
+        return task;
     }
 
     public void addTask(Runnable task) {
+        lock.lock();
         threadQueue.offer(task);
+        lock.unlock();
+
     }
 
-    void releaseTask(int taskNumber) {
-        availablePoolElement.offer(taskNumber);
+    boolean isShutDown() {
+        if (threadQueue.size() == 0) return shutDown;
+        return false;
     }
 
     public void shutDown() {
         shutDown = true;
-    }
-
-    class TaskExecutor extends Thread {
-        @Override
-        public void run() {
-            while (!shutDown || threadQueue.size() > 0) {
-                if (availablePoolElement.size() > 0)
-                    pool[availablePoolElement.poll()].setTask(threadQueue.poll());
-                Thread.yield();
-            }
-            for (ThreadPoolTask task : pool) task.shutDown();
-        }
     }
 }
 
